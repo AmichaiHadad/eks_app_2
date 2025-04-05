@@ -31,7 +31,7 @@ jobs:
         id: build-image-us-east-1
         env:
           ECR_REGISTRY: ${{ steps.login-ecr-us-east-1.outputs.registry }}
-          ECR_REPOSITORY: app
+          ECR_REPOSITORY: eks-blizzard/app
           IMAGE_TAG: ${{ github.sha }}
         working-directory: ./app
         run: |
@@ -56,7 +56,7 @@ jobs:
         id: build-image-us-west-2
         env:
           ECR_REGISTRY: ${{ steps.login-ecr-us-west-2.outputs.registry }}
-          ECR_REPOSITORY: app
+          ECR_REPOSITORY: eks-blizzard/app
           IMAGE_TAG: ${{ github.sha }}
         working-directory: ./app
         run: |
