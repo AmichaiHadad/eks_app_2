@@ -21,7 +21,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/your-org/eks-gitops.git
+        repoURL: https://github.com/AmichaiHadad/eks_app_2.git
         targetRevision: main
         path: helm-chart/monitoring
         helm:
