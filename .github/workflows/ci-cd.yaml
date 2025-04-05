@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}
+          persist-credentials: true
       
       - name: Configure AWS credentials for us-east-1
         uses: aws-actions/configure-aws-credentials@v2
@@ -40,7 +43,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-            
+           
       - name: Update Helm chart values with new image tag
         env:
           IMAGE_TAG: ${{ github.sha }}
@@ -58,13 +61,24 @@ jobs:
           cat helm-chart/app/Chart.yaml | grep -E "version:|appVersion:"
       
       - name: Commit and push changes to Git
-        env:
-          PAT: ${{ secrets.PAT }}
         run: |
+          # Debug information
+          echo "Checking git remote (without showing credentials)"
+          git remote -v | sed 's/https:\/\/.*@/https:\/\/***@/'
+          
+          # Setup git
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add helm-chart/app/values.yaml helm-chart/app/Chart.yaml
-          git commit -m "Update image tag to ${{ github.sha }} [skip ci]"
-          # Use PAT for authentication
-          git remote set-url origin https://${PAT}@github.com/AmichaiHadad/eks_app_2.git
-          git push origin HEAD:main
+          
+          # Check for changes and commit if needed
+          if git diff --quiet helm-chart/app/values.yaml helm-chart/app/Chart.yaml; then
+            echo "No changes to commit"
+          else
+            git add helm-chart/app/values.yaml helm-chart/app/Chart.yaml
+            git commit -m "Update image tag to ${{ github.sha }} [skip ci]"
+            
+            # Push using the token from checkout step 
+            # (should already be configured because of persist-credentials: true)
+            echo "Pushing changes..."
+            git push
+          fi
