@@ -180,7 +180,11 @@ kube-prometheus-stack:
       - key: monitoring
         value: "true"
         effect: NoSchedule
-    adminPassword: "admin-password-placeholder"  # Will be overridden by External Secrets
+    # Instead of using adminPassword directly, use an existing secret
+    admin:
+      existingSecret: "grafana-admin-credentials"
+      userKey: "admin-user"
+      passwordKey: "admin-password"
     persistence:
       enabled: true
       storageClassName: gp2
