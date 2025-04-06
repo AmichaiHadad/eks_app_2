@@ -1,6 +1,10 @@
 # Cluster configuration
 clusterName: eks-blizzard-us-east-1
 
+# Global configuration
+global:
+  region: us-east-1
+
 # Alertmanager webhook secret is expected to be managed externally
 # Either created manually or via External Secrets
 # The secret should be named 'alertmanager-slack-webhook' in the monitoring namespace
