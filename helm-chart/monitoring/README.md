@@ -20,7 +20,28 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 ```
 
-## Deployment Methods
+## Important Deployment Instructions
+
+### Pre-deployment Setup
+Before deploying the monitoring stack, you must manually install the Prometheus CRDs due to an issue with large annotations in the CRDs:
+
+```bash
+# Install Prometheus CRDs manually
+kubectl create -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.68.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+```
+
+### Slack Webhook Configuration
+
+The monitoring stack is configured to send alerts to Slack. To set this up:
+
+1. Create a Kubernetes secret for the Slack webhook:
+
+```bash
+kubectl create secret generic alertmanager-slack-webhook -n monitoring \
+  --from-literal=slack_webhook_url="https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+```
+
+2. The AlertmanagerConfig in the chart will automatically use this secret.
 
 ### Manual Helm Installation (for testing)
 
@@ -36,50 +57,11 @@ helm install prometheus . -n monitoring
 
 ### ArgoCD Deployment (recommended)
 
-The monitoring stack is automatically deployed via ArgoCD using the ApplicationSet:
-
-```yaml
-# Key configurations in ApplicationSet:
-helm:
-  repositories:
-  - name: prometheus-community
-    url: https://prometheus-community.github.io/helm-charts
-```
-
-## Slack Alerting Configuration
-
-The monitoring stack is configured to send alerts to Slack. To set this up:
-
-1. Create a secret in AWS Secrets Manager with the following details:
-
-```bash
-# Create the secret with AWS CLI
-aws secretsmanager create-secret \
-    --name "eks-blizzard/slack-webhook" \
-    --description "Slack webhook URL for alerting" \
-    --secret-string "{\"slack_webhook_url\":\"https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK\"}"
-```
-
-2. The ExternalSecret will automatically fetch this secret and configure Alertmanager.
-
-3. The secret should have the following structure:
-```json
-{
-  "slack_webhook_url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
-}
-```
-
-## Dependency Versions
-
-The chart depends on the following Prometheus Community charts:
-
-- kube-prometheus-stack: 51.4.0
-- prometheus-mysql-exporter: 1.14.0
-- prometheus-elasticsearch-exporter: 5.2.0
+The monitoring stack is automatically deployed via ArgoCD using the ApplicationSet defined in `/argocd/monitoring-applicationset.yaml`.
 
 ## Storage Configuration
 
-This chart uses GP3 storage class for persistent volumes. Ensure this storage class exists in your EKS cluster.
+This chart uses gp2 storage class for persistent volumes. Ensure this storage class exists in your EKS cluster.
 
 ## Dashboards
 
@@ -102,16 +84,52 @@ Custom alert rules are defined for:
 
 ## Access
 
-Grafana is accessible via the ingress at the URL specified in the values.yaml file. The admin password is managed by External Secrets.
+### DNS Configuration
+
+The monitoring stack automatically configures DNS for Grafana using External DNS:
+
+1. The Grafana ingress is created with annotations for automatic DNS registration
+2. External DNS deployment is included in the chart and will create/update the required DNS records
+3. Grafana will be accessible at `grafana.<region>.blizzard.co.il` (e.g., `grafana.us-east-1.blizzard.co.il`)
+
+Prerequisites for DNS automation:
+- Route53 hosted zone for `blizzard.co.il` domain must exist in the AWS account
+- The IAM role `eks-blizzard-<region>-route53-dns-manager-irsa` must be created with proper permissions
+  - This role is created automatically by the eks-addons Terraform module when `create_route53_dns_manager_irsa = true`
+  - The service account `route53-dns-manager` in the `monitoring` namespace must have the proper IAM role annotation
+- The OIDC provider must be configured for the EKS cluster
 
 ## Troubleshooting
 
-If you encounter dependency issues:
+If you encounter issues during deployment:
 
-1. Verify that the Prometheus Community repository is added to ArgoCD
-2. Check that the versions specified in Chart.yaml are available in the repository
-3. Try manually updating dependencies:
+1. **CRD Installation Issues**:
+   - Check if Prometheus CRDs are installed: `kubectl get crd | grep prometheus`
+   - If missing, manually install them with the command in the Pre-deployment Setup section
+   - Make sure `prometheusOperator.createCustomResource: false` in values.yaml
+
+2. **Slack Webhook Issues**:
+   - Verify the `alertmanager-slack-webhook` secret exists: `kubectl get secret -n monitoring alertmanager-slack-webhook`
+   - Check that the AlertmanagerConfig is created: `kubectl get alertmanagerconfig -n monitoring`
+
+3. **Grafana Issues**:
+   - If multiple datasources are competing for default, check values.yaml to ensure only one has `isDefault: true`
+
+4. **Storage Issues**:
+   - Check that the storage class exists: `kubectl get sc`
+   - All PVCs should be using gp2 storage class (not gp3)
+   - Verify PVCs are bound: `kubectl get pvc -n monitoring`
+
+5. **Complete Cleanup (if needed)**:
+   A cleanup script is provided in the repository that preserves important configuration:
    ```bash
-   helm dependency update
+   ./cleanup-monitoring-force.sh
    ```
-4. Check ArgoCD logs for more detailed error messages
+
+## Dependency Versions
+
+The chart depends on the following Prometheus Community charts:
+
+- kube-prometheus-stack: 51.4.0
+- prometheus-mysql-exporter: 1.14.0
+- prometheus-elasticsearch-exporter: 5.2.0
