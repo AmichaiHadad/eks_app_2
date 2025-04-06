@@ -1,107 +1,44 @@
-# Elasticsearch Helm chart values
-elasticsearch:
-  # Global settings
-  global:
-    kibanaEnabled: false
-  
-  # Cluster configuration
-  clusterName: "logging-cluster"
-  
-  # Security
-  security:
-    enabled: true
-    # These will be overridden by External Secrets in production
-    elasticPassword: "placeholder-elastic-password"
-    
-  # Node configuration for master-eligible nodes
-  master:
-    replicas: 3
-    # Schedule on data nodes
-    nodeSelector:
-      node-role: data
-    tolerations:
-      - key: role
-        value: data
-        effect: NoSchedule
-    heapSize: 1024m
-    resources:
-      requests:
-        cpu: 500m
-        memory: 2Gi
-      limits:
-        cpu: 1000m
-        memory: 2Gi
-    persistence:
-      enabled: true
-      storageClass: "gp3"
-      size: 30Gi
-  
-  # Node configuration for data nodes (we use master-eligible data nodes for simplicity)
-  data:
-    replicas: 0  # We're using master nodes as data nodes too for simplicity
-  
-  # Node configuration for coordinating-only nodes
-  coordinating:
-    replicas: 0  # Not using dedicated coordinating nodes
-  
-  # Node configuration for ingest nodes
-  ingest:
-    replicas: 0  # Not using dedicated ingest nodes
-  
-  # Service configuration
-  service:
-    type: ClusterIP
-    ports:
-      restAPI: 9200
-      transport: 9300
-      
-  # Add Ingress for Elasticsearch
-  ingress:
-    enabled: true
-    hostname: elasticsearch.blizzard.co.il
-    path: /
-    pathType: Prefix
-    annotations:
-      kubernetes.io/ingress.class: alb
-      alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/target-type: ip
-      alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:163459217187:certificate/4ff90f30-64f8-40e1-b1b3-8f13d5fac876
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
-      alb.ingress.kubernetes.io/healthcheck-path: /
-      alb.ingress.kubernetes.io/success-codes: "200,401"
-  
-  # Initialize with default index templates
-  plugins: []  # No additional plugins
-  
-  # Configure index lifecycle management policies
-  sysctlImage:
-    enabled: true
-  
-  # Set JVM options for better performance in Kubernetes
-  extraEnvVars:
-    - name: ES_JAVA_OPTS
-      value: "-Xms1g -Xmx1g"
-    
-  # Configure log levels
-  logging:
-    level: info
-  
-  # Enable hot/warm architecture
-  hotWarmArchitecture:
-    enabled: false  # For simplicity, we're not using hot/warm architecture
-  
-  # Snapshots and backups
-  snapshotRepository:
-    enabled: false  # Configure for production to backup to S3
-  
-  # Default curator settings for index cleanup
-  curator:
-    enabled: false  # Will be set up separately with Elasticsearch curator cronjob
-  
-  # Use pre-existing secrets
-  existingSecret: ""  # Will be set in production using External Secrets
-  
-  # Configure Elasticsearch directly through the Bitnami API pattern
-  config:
-    elasticsearch.yml: |-
-      action.auto_create_index: true
+# Custom Elasticsearch chart values
+# Using official Elasticsearch image directly instead of Bitnami chart
+
+# No need for complex security configuration - using simple deployment with security disabled
+# as specified in Project_Master_Definition.md and implemented in templates/elasticsearch.yaml
+
+# 3-Node cluster configuration with high availability
+# Each node has both master and data roles as per Project_Master_Definition.md
+replicas: 3
+image:
+  repository: docker.elastic.co/elasticsearch/elasticsearch
+  tag: 8.10.4
+
+# Resource configuration for ES nodes
+resources:
+  requests:
+    cpu: 500m
+    memory: 3Gi
+  limits:
+    cpu: 1
+    memory: 4Gi
+
+# Storage configuration
+storage:
+  storageClassName: gp2
+  size: 30Gi
+
+# Security settings - disabled as per solution in ClaudeProgress.md
+security:
+  enabled: false
+
+# Node placement
+nodeSelector:
+  node-role: data
+tolerations:
+  - effect: NoSchedule
+    key: role
+    value: data
+
+# Ingress configuration
+ingress:
+  enabled: true
+  host: elasticsearch.blizzard.co.il
+  certificateArn: arn:aws:acm:us-east-1:163459217187:certificate/4ff90f30-64f8-40e1-b1b3-8f13d5fac876
