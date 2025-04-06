@@ -32,9 +32,6 @@ data:
     
     # Security settings (disabled)
     xpack.security.enabled: false
-    
-    # Disable allocation awareness for now 
-    # cluster.routing.allocation.awareness.attributes: rack_id
 ---
 # ILM Policy ConfigMap for log rotation
 apiVersion: v1
@@ -198,11 +195,7 @@ spec:
           value: "false"
         - name: bootstrap.memory_lock
           value: "false"
-        # Use node name for identifying node
-        - name: node.name
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
+        # HOSTNAME will be used as node.name via config file
         securityContext:
           runAsUser: 1000
           fsGroup: 1000
