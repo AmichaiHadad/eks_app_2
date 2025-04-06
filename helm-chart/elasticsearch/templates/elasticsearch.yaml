@@ -330,35 +330,4 @@ spec:
           curl_with_retry "elasticsearch:9200/k8s-logs-000001" "PUT" "$initial_index"
           
           echo "ILM policy and index template configured successfully"
----
-{{- if .Values.ingress.enabled }}
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: elasticsearch
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.ingress.certificateArn }}
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
-    alb.ingress.kubernetes.io/healthcheck-path: /
-    alb.ingress.kubernetes.io/success-codes: "200,401"
-    # Security groups should be configured through Terraform/values.yaml, not hardcoded
-    {{- if .Values.ingress.securityGroups }}
-    alb.ingress.kubernetes.io/security-groups: {{ .Values.ingress.securityGroups }}
-    {{- end }}
-spec:
-  rules:
-  - host: {{ .Values.ingress.host }}
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: elasticsearch
-            port:
-              number: 9200
-{{- end }}
+# Ingress removed - Elasticsearch is used internally only per project definition
