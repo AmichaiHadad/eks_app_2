@@ -41,80 +41,6 @@ data:
     # Additional settings for multi-node setup
     network.publish_host: ${HOSTNAME}.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local
 ---
-# ILM Policy ConfigMap for log rotation
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: elasticsearch-ilm
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app: elasticsearch
-data:
-  setup-ilm.sh: |
-    #!/bin/bash
-    # Wait for Elasticsearch to be ready
-    until curl -s http://localhost:9200/_cluster/health | grep -q '"status":"green"'; do
-      echo "Waiting for Elasticsearch cluster to be ready..."
-      sleep 5
-    done
-    
-    # Create ILM policy for log rotation
-    curl -X PUT "localhost:9200/_ilm/policy/logs-policy" -H 'Content-Type: application/json' -d'
-    {
-      "policy": {
-        "phases": {
-          "hot": {
-            "min_age": "0ms",
-            "actions": {
-              "rollover": {
-                "max_age": "7d",
-                "max_size": "10gb"
-              },
-              "set_priority": {
-                "priority": 100
-              }
-            }
-          },
-          "warm": {
-            "min_age": "30d",
-            "actions": {
-              "shrink": {
-                "number_of_shards": 1
-              },
-              "forcemerge": {
-                "max_num_segments": 1
-              },
-              "set_priority": {
-                "priority": 50
-              }
-            }
-          },
-          "delete": {
-            "min_age": "90d",
-            "actions": {
-              "delete": {}
-            }
-          }
-        }
-      }
-    }'
-    
-    # Create index template with ILM policy
-    curl -X PUT "localhost:9200/_index_template/logs-template" -H 'Content-Type: application/json' -d'
-    {
-      "index_patterns": ["k8s-logs-*"], 
-      "template": {
-        "settings": {
-          "index.lifecycle.name": "logs-policy",
-          "index.lifecycle.rollover_alias": "k8s-logs",
-          "index.number_of_shards": 3,
-          "index.number_of_replicas": 1
-        }
-      }
-    }'
-    
-    echo "ILM policy and index template configured successfully"
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -225,89 +151,7 @@ spec:
           limits:
             cpu: {{ .Values.resources.limits.cpu }}
             memory: {{ .Values.resources.limits.memory }}
-        lifecycle:
-          postStart:
-            exec:
-              command:
-              - /bin/bash
-              - -c
-              - |
-                # Only run the ILM setup on the first node (elasticsearch-0)
-                if [[ "$HOSTNAME" == "elasticsearch-0" ]]; then
-                  # Wait for Elasticsearch to be ready (give it some time to start)
-                  echo "This is the master node, waiting for cluster to be ready..."
-                  sleep 30
-                  until curl -s http://localhost:9200/_cluster/health | grep -q 'status.*green\|status.*yellow'; do
-                    echo "Waiting for Elasticsearch cluster to be ready..."
-                    sleep 5
-                  done
-
-                  # Create ILM policy for log rotation
-                  echo "Setting up ILM policy..."
-                  curl -X PUT "localhost:9200/_ilm/policy/logs-policy" -H 'Content-Type: application/json' -d'{
-                    "policy": {
-                      "phases": {
-                        "hot": {
-                          "min_age": "0ms",
-                          "actions": {
-                            "rollover": {
-                              "max_age": "7d",
-                              "max_size": "10gb"
-                            },
-                            "set_priority": {
-                              "priority": 100
-                            }
-                          }
-                        },
-                        "warm": {
-                          "min_age": "30d",
-                          "actions": {
-                            "shrink": {
-                              "number_of_shards": 1
-                            },
-                            "forcemerge": {
-                              "max_num_segments": 1
-                            },
-                            "set_priority": {
-                              "priority": 50
-                            }
-                          }
-                        },
-                        "delete": {
-                          "min_age": "90d",
-                          "actions": {
-                            "delete": {}
-                          }
-                        }
-                      }
-                    }
-                  }'
-
-                  # Create index template with ILM policy
-                  echo "Setting up index template..."
-                  curl -X PUT "localhost:9200/_index_template/logs-template" -H 'Content-Type: application/json' -d'{
-                    "index_patterns": ["k8s-logs-*"],
-                    "template": {
-                      "settings": {
-                        "index.lifecycle.name": "logs-policy",
-                        "index.lifecycle.rollover_alias": "k8s-logs",
-                        "index.number_of_shards": 3,
-                        "index.number_of_replicas": 1
-                      }
-                    }
-                  }'
-                  
-                  echo "ILM policy and index template configured successfully"
-                else
-                  # For other nodes, just a simple check to make sure Elasticsearch starts
-                  echo "This is a data node, waiting for local node to start..."
-                  sleep 30
-                  until curl -s http://localhost:9200/_cluster/health?local=true | grep -q 'status'; do
-                    echo "Waiting for local Elasticsearch node to be ready..."
-                    sleep 5
-                  done
-                  echo "Local Elasticsearch node is ready"
-                fi
+        # No postStart lifecycle hooks - nodes will just start up cleanly
         readinessProbe:
           httpGet:
             path: /_cluster/health?local=true
@@ -342,6 +186,150 @@ spec:
       resources:
         requests:
           storage: {{ .Values.storage.size }}
+---
+# Separate Job to set up ILM policies after the cluster is fully up
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: elasticsearch-setup-ilm
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: elasticsearch
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        app: elasticsearch-job
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: setup-ilm
+        image: curlimages/curl:7.86.0
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Wait for Elasticsearch to be ready (green or yellow status is acceptable)
+          echo "Waiting for Elasticsearch cluster to be available..."
+          while true; do
+            health_status=$(curl -s http://elasticsearch:9200/_cluster/health | grep -o '"status":"[^"]*"' || echo "")
+            if [[ $health_status =~ "green" || $health_status =~ "yellow" ]]; then
+              echo "Elasticsearch cluster is ready with status: $health_status"
+              break
+            fi
+            echo "Still waiting for Elasticsearch cluster... Current status: $health_status"
+            sleep 10
+          done
+          
+          echo "Elasticsearch is ready. Setting up ILM policy..."
+          
+          # Helper function for curl commands with retry logic
+          function curl_with_retry {
+            local url=$1
+            local method=$2
+            local data=$3
+            local max_retries=5
+            local retry=0
+            local response=""
+            
+            while [ $retry -lt $max_retries ]; do
+              if [ -n "$data" ]; then
+                response=$(curl -s -X $method "$url" -H 'Content-Type: application/json' -d "$data")
+              else
+                response=$(curl -s -X $method "$url")
+              fi
+              
+              if [[ "$response" == *"acknowledged"*"true"* ]]; then
+                echo "Command successful on attempt $((retry+1))"
+                return 0
+              fi
+              
+              retry=$((retry+1))
+              if [ $retry -lt $max_retries ]; then
+                sleep_time=$((retry * 5))
+                echo "Attempt $retry failed, retrying in $sleep_time seconds..."
+                sleep $sleep_time
+              else
+                echo "Failed after $max_retries attempts. Last response: $response"
+                return 1
+              fi
+            done
+          }
+          
+          # Create ILM policy for log rotation
+          echo "Creating ILM policy for log rotation..."
+          ilm_policy='{
+            "policy": {
+              "phases": {
+                "hot": {
+                  "min_age": "0ms",
+                  "actions": {
+                    "rollover": {
+                      "max_age": "7d",
+                      "max_size": "10gb"
+                    },
+                    "set_priority": {
+                      "priority": 100
+                    }
+                  }
+                },
+                "warm": {
+                  "min_age": "30d",
+                  "actions": {
+                    "shrink": {
+                      "number_of_shards": 1
+                    },
+                    "forcemerge": {
+                      "max_num_segments": 1
+                    },
+                    "set_priority": {
+                      "priority": 50
+                    }
+                  }
+                },
+                "delete": {
+                  "min_age": "90d",
+                  "actions": {
+                    "delete": {}
+                  }
+                }
+              }
+            }
+          }'
+          curl_with_retry "elasticsearch:9200/_ilm/policy/logs-policy" "PUT" "$ilm_policy"
+          
+          # Create index template with ILM policy
+          echo "Creating index template with ILM policy..."
+          index_template='{
+            "index_patterns": ["k8s-logs-*"], 
+            "template": {
+              "settings": {
+                "index.lifecycle.name": "logs-policy",
+                "index.lifecycle.rollover_alias": "k8s-logs",
+                "index.number_of_shards": 3,
+                "index.number_of_replicas": 1
+              }
+            }
+          }'
+          curl_with_retry "elasticsearch:9200/_index_template/logs-template" "PUT" "$index_template"
+          
+          # Create initial index and rollover alias
+          echo "Creating initial index and rollover alias..."
+          initial_index='{
+            "aliases": {
+              "k8s-logs": {
+                "is_write_index": true
+              }
+            }
+          }'
+          curl_with_retry "elasticsearch:9200/k8s-logs-000001" "PUT" "$initial_index"
+          
+          echo "ILM policy and index template configured successfully"
 ---
 {{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
