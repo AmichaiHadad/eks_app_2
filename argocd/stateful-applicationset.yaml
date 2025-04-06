@@ -28,6 +28,12 @@ spec:
         repoURL: https://github.com/AmichaiHadad/eks_app_2.git
         targetRevision: main
         path: helm-chart/{{name}}
+        helm:
+          parameters:
+          - name: replicas
+            value: "1"
+          - name: discovery
+            value: "single-node"
       destination:
         server: '{{server}}'
         namespace: '{{namespace}}'

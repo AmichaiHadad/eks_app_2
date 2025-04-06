@@ -23,9 +23,14 @@ data:
     # Index settings
     action.auto_create_index: true
     
+    {{- if eq .Values.discovery "single-node" }}
+    # Use single-node discovery for simpler setup
+    discovery.type: single-node
+    {{- else }}
     # Cluster settings for multi-node discovery
     discovery.seed_hosts: ["elasticsearch-0.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local", "elasticsearch-1.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local", "elasticsearch-2.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local"]
     cluster.initial_master_nodes: ["elasticsearch-0", "elasticsearch-1", "elasticsearch-2"]
+    {{- end }}
     
     # Node roles (all nodes are master-eligible and data nodes)
     node.roles: ["master", "data"]
@@ -33,8 +38,7 @@ data:
     # Security settings (disabled)
     xpack.security.enabled: false
     
-    # Allocation awareness for multi-AZ deployment
-    cluster.routing.allocation.awareness.attributes: rack_id
+    # Important: No allocation awareness settings to avoid rack_id errors
 ---
 # ILM Policy ConfigMap for log rotation
 apiVersion: v1
@@ -198,11 +202,7 @@ spec:
           value: "false"
         - name: bootstrap.memory_lock
           value: "false"
-        # Add rack awareness
-        - name: node.attr.rack_id 
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.labels['topology.kubernetes.io/zone']
+        # HOSTNAME will be used as node.name via config file
         securityContext:
           runAsUser: 1000
           fsGroup: 1000

@@ -4,9 +4,12 @@
 # No need for complex security configuration - using simple deployment with security disabled
 # as specified in Project_Master_Definition.md and implemented in templates/elasticsearch.yaml
 
-# 3-Node cluster configuration with high availability
+# Default to 3-Node cluster configuration for high availability
 # Each node has both master and data roles as per Project_Master_Definition.md
+# Can be overridden to 1 for simpler deployment
 replicas: 3
+# Discovery mode - can be set to "single-node" for simpler deployment
+discovery: "multi-node"
 image:
   repository: docker.elastic.co/elasticsearch/elasticsearch
   tag: 8.10.4
