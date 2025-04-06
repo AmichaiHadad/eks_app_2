@@ -45,3 +45,4 @@ ingress:
   enabled: true
   host: elasticsearch.blizzard.co.il
   certificateArn: arn:aws:acm:us-east-1:163459217187:certificate/4ff90f30-64f8-40e1-b1b3-8f13d5fac876
+  # securityGroups: "sg-12345,sg-67890" # Uncomment and set valid security group IDs if needed

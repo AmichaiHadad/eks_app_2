@@ -345,8 +345,10 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     alb.ingress.kubernetes.io/healthcheck-path: /
     alb.ingress.kubernetes.io/success-codes: "200,401"
-    # Add security group for restricted access
-    alb.ingress.kubernetes.io/security-groups: sg-internal-access-only
+    # Security groups should be configured through Terraform/values.yaml, not hardcoded
+    {{- if .Values.ingress.securityGroups }}
+    alb.ingress.kubernetes.io/security-groups: {{ .Values.ingress.securityGroups }}
+    {{- end }}
 spec:
   rules:
   - host: {{ .Values.ingress.host }}
