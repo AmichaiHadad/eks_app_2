@@ -17,6 +17,21 @@ kube-prometheus-stack:
   global:
     rbac:
       create: true
+      
+  # Add Elasticsearch as additional datasource to kube-prometheus-stack Grafana
+  grafana:
+    additionalDataSources:
+      - name: Elasticsearch
+        type: elasticsearch
+        url: http://elasticsearch-master:9200
+        access: proxy
+        database: k8s-logs-*
+        isDefault: false
+        jsonData:
+          timeField: "@timestamp"
+          esVersion: 70
+          logLevelField: level
+          logMessageField: log
     
   # Prometheus Operator configuration
   prometheusOperator:
@@ -190,26 +205,28 @@ kube-prometheus-stack:
       dashboards:
         enabled: true
         searchNamespace: ALL
-    datasources:
-      datasources.yaml:
-        apiVersion: 1
-        datasources:
-        - name: Prometheus
-          type: prometheus
-          url: http://prometheus-operated:9090
-          access: proxy
-          isDefault: true
-        - name: Elasticsearch
-          type: elasticsearch
-          url: http://elasticsearch-master:9200
-          access: proxy
-          database: k8s-logs-*
-          isDefault: false
-          jsonData:
-            timeField: "@timestamp"
-            esVersion: 70
-            logLevelField: level
-            logMessageField: log
+    # We are now managing datasources through kube-prometheus-stack.grafana.additionalDataSources
+    # to avoid the duplicate datasource issue that causes Grafana to crash
+    # datasources:
+    #   datasources.yaml:
+    #     apiVersion: 1
+    #     datasources:
+    #     - name: Prometheus
+    #       type: prometheus
+    #       url: http://prometheus-operated:9090
+    #       access: proxy
+    #       isDefault: true
+    #     - name: Elasticsearch
+    #       type: elasticsearch
+    #       url: http://elasticsearch-master:9200
+    #       access: proxy
+    #       database: k8s-logs-*
+    #       isDefault: false
+    #       jsonData:
+    #         timeField: "@timestamp"
+    #         esVersion: 70
+    #         logLevelField: level
+    #         logMessageField: log
   
     # Dashboards configuration
     dashboardProviders:
