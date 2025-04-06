@@ -185,6 +185,7 @@ kube-prometheus-stack:
           url: http://elasticsearch-master:9200
           access: proxy
           database: k8s-logs-*
+          isDefault: false
           jsonData:
             timeField: "@timestamp"
             esVersion: 70
