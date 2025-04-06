@@ -122,7 +122,7 @@ kube-prometheus-stack:
       receivers:
         - name: 'slack'
           slack_configs:
-          - api_url: 'https://hooks.slack.com/services/REPLACE_WITH_YOUR_SLACK_WEBHOOK'
+          - api_url: '${slack-webhook-url}'
             channel: '#alerts'
             send_resolved: true
             title: '{{ template "slack.default.title" . }}'
@@ -133,6 +133,11 @@ kube-prometheus-stack:
           target_match:
             severity: 'warning'
           equal: ['alertname', 'namespace']
+    # Use external secret for Slack webhook
+    alertmanagerConfigFromSecret:
+      enabled: true
+      name: "alertmanager-slack-webhook"
+      key: "alertmanager.yaml"
     alertmanagerSpec:
       storage:
         volumeClaimTemplate:

@@ -30,6 +30,12 @@ spec:
           parameters:
             - name: grafana.ingress.hosts[0]
               value: 'grafana.{{region}}.blizzard.co.il'
+          skipCrds: false
+          passCredentials: false
+          ignoreMissingValueFiles: false
+          repositories:
+          - name: prometheus-community
+            url: https://prometheus-community.github.io/helm-charts
       destination:
         server: '{{url}}'
         namespace: monitoring
