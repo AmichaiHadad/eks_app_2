@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-slack-webhook
+  namespace: monitoring
+type: Opaque
+stringData:
+  slack_webhook_url: "https://hooks.slack.com/services/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"

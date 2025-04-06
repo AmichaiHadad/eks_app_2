@@ -23,6 +23,7 @@ kube-prometheus-stack:
           - key: monitoring
             value: "true"
             effect: NoSchedule
+    createCustomResource: false
   
   # Prometheus configuration
   prometheus:
@@ -127,9 +128,11 @@ kube-prometheus-stack:
           target_match:
             severity: 'warning'
           equal: ['alertname', 'namespace']
-    # Disable external config for now to simplify deployment
-    alertmanagerConfigFromSecret:
-      enabled: false
+    # Enable alertmanager config CRD
+    alertmanagerConfigSelector:
+      matchLabels: {}
+    alertmanagerConfiguration:
+      enabled: true
     alertmanagerSpec:
       storage:
         volumeClaimTemplate:
