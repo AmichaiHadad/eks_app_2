@@ -1,32 +1,24 @@
-apiVersion: monitoring.coreos.com/v1
+apiVersion: monitoring.coreos.com/v1alpha1
 kind: AlertmanagerConfig
 metadata:
-  name: main-alertmanager-config
-  namespace: monitoring
+  name: slack-alerts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
 spec:
   route:
-    group_by: ['alertname', 'job']
-    group_wait: 30s
-    group_interval: 5m
-    repeat_interval: 12h
-    receiver: 'slack'
-    routes:
-      - match:
-          severity: critical
-        receiver: 'slack'
+    receiver: slack-receiver
+    groupBy: ['alertname', 'job']
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 12h
   receivers:
-    - name: 'slack'
-      slackConfigs:
-      - apiURL:
-          name: alertmanager-slack-webhook
-          key: slack_webhook_url
-        channel: '#alerts'
-        sendResolved: true
-        title: 'Alert: {{ .CommonLabels.alertname }}'
-        text: 'Alert fired for {{ .CommonLabels.alertname }}'
-  inhibit_rules:
-    - source_match:
-        severity: 'critical'
-      target_match:
-        severity: 'warning'
-      equal: ['alertname', 'namespace']
+  - name: slack-receiver
+    slackConfigs:
+    - sendResolved: true
+      channel: '#alerts'
+      apiURL:
+        key: slack_webhook_url
+        name: alertmanager-slack-webhook
+      title: '{{ `{{ .CommonAnnotations.summary }}` }}'
+      text: '{{ `{{ .CommonAnnotations.description }}` }}'
