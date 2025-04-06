@@ -28,7 +28,7 @@ data:
     discovery.type: single-node
     {{- else }}
     # Cluster settings for multi-node discovery
-    discovery.seed_hosts: ["elasticsearch-0.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local", "elasticsearch-1.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local", "elasticsearch-2.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local"]
+    discovery.seed_hosts: ["elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local"]
     cluster.initial_master_nodes: ["elasticsearch-0", "elasticsearch-1", "elasticsearch-2"]
     {{- end }}
     
@@ -38,7 +38,8 @@ data:
     # Security settings (disabled)
     xpack.security.enabled: false
     
-    # Important: No allocation awareness settings to avoid rack_id errors
+    # Additional settings for multi-node setup
+    network.publish_host: ${HOSTNAME}.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local
 ---
 # ILM Policy ConfigMap for log rotation
 apiVersion: v1
