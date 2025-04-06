@@ -3,27 +3,25 @@ fluentd:
   # Fluentd configuration
   configMapName: ""
   
-  # Use DaemonSet to run on all nodes
+  # Use DaemonSet to run on all nodes and configure environment variables
   forwarder:
     enabled: true
     daemonset:
       enabled: true
     configMap: fluentd-forwarder
+    extraEnvVars:
+      - name: FLUENTD_CONF
+        value: "fluentd.conf"
+      - name: ELASTICSEARCH_HOST
+        value: "elasticsearch"
+      - name: ELASTICSEARCH_PORT
+        value: "9200"
+      - name: ELASTICSEARCH_SCHEME
+        value: "http"
   
   # Disable aggregator deployment - we'll send logs directly to Elasticsearch
   aggregator:
     enabled: false
-  
-  # Environment variables
-  extraEnvVars:
-    - name: FLUENTD_CONF
-      value: "fluentd.conf"
-    - name: ELASTICSEARCH_HOST
-      value: "elasticsearch"
-    - name: ELASTICSEARCH_PORT
-      value: "9200"
-    - name: ELASTICSEARCH_SCHEME
-      value: "http"
   
   # Configure Fluentd
   configMap: |-
