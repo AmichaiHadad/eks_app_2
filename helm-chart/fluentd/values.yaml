@@ -13,7 +13,7 @@ fluentd:
       - name: FLUENTD_CONF
         value: "fluentd.conf"
       - name: ELASTICSEARCH_HOST
-        value: "elasticsearch"
+        value: "elasticsearch.data.svc.cluster.local"
       - name: ELASTICSEARCH_PORT
         value: "9200"
       - name: ELASTICSEARCH_SCHEME
