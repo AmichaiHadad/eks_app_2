@@ -23,15 +23,22 @@ data:
     # Index settings
     action.auto_create_index: true
     
+    {{- if eq .Values.discovery "single-node" }}
+    # Use single-node discovery for simpler setup
+    discovery.type: single-node
+    {{- else }}
     # Cluster settings for multi-node discovery
     discovery.seed_hosts: ["elasticsearch-0.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local", "elasticsearch-1.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local", "elasticsearch-2.elasticsearch-headless.{{ .Release.Namespace }}.svc.cluster.local"]
     cluster.initial_master_nodes: ["elasticsearch-0", "elasticsearch-1", "elasticsearch-2"]
+    {{- end }}
     
     # Node roles (all nodes are master-eligible and data nodes)
     node.roles: ["master", "data"]
     
     # Security settings (disabled)
     xpack.security.enabled: false
+    
+    # Important: No allocation awareness settings to avoid rack_id errors
 ---
 # ILM Policy ConfigMap for log rotation
 apiVersion: v1

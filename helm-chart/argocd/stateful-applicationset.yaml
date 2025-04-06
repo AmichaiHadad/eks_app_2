@@ -13,6 +13,7 @@ spec:
           - name: elasticsearch
             namespace: data
             server: https://kubernetes.default.svc
+            parameters: '{"replicas":"1", "discovery": "single-node"}'
             # Using direct custom chart with official Elasticsearch image
             # instead of Bitnami chart to avoid security config issues
           - name: fluentd
@@ -28,6 +29,14 @@ spec:
         repoURL: https://github.com/AmichaiHadad/eks_app_2.git
         targetRevision: main
         path: helm-chart/{{name}}
+        helm:
+          parameters:
+          {{- if hasKey . "parameters" }}
+            {{- range $key, $value := (fromJson .parameters) }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
       destination:
         server: '{{server}}'
         namespace: '{{namespace}}'
