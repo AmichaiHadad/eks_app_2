@@ -60,6 +60,20 @@ fluentd:
       scheme "#{ENV['ELASTICSEARCH_SCHEME']}"
       logstash_format true
       logstash_prefix k8s-logs
+      include_tag_key true
+      tag_key @log_name
+      reconnect_on_error true
+      reload_on_failure true
+      reload_connections false
+      request_timeout 15s
+      log_es_400_reason true
+      with_transporter_log true
+      ssl_verify false
+      ssl_version TLSv1_2
+      # For Elasticsearch 8.x compatibility
+      suppress_type_name true
+      # Specify the compatible API version
+      default_elasticsearch_version 8
       <buffer>
         @type file
         path /opt/bitnami/fluentd/logs/buffers/k8s
@@ -75,11 +89,11 @@ fluentd:
   # Resource allocations
   resources:
     limits:
+      cpu: 200m
+      memory: 400Mi
+    requests:
       cpu: 100m
       memory: 200Mi
-    requests:
-      cpu: 50m
-      memory: 100Mi
   
   # Run on all nodes
   tolerations:
