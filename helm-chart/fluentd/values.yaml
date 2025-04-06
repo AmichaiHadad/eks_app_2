@@ -33,6 +33,20 @@ fluentd:
       bind 0.0.0.0
     </source>
 
+    # Handle health check endpoint explicitly
+    <match fluentd.healthcheck>
+      @type stdout
+    </match>
+    
+    # Handle the health check route
+    <filter fluentd.healthcheck>
+      @type record_transformer
+      enable_ruby true
+      <record>
+        ping pong
+      </record>
+    </filter>
+
     # Container logs input
     <source>
       @type tail
