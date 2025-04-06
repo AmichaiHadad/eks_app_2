@@ -13,7 +13,6 @@ spec:
           - name: elasticsearch
             namespace: data
             server: https://kubernetes.default.svc
-            valueFiles: []
             # Using direct custom chart with official Elasticsearch image
             # instead of Bitnami chart to avoid security config issues
           - name: fluentd
@@ -29,12 +28,6 @@ spec:
         repoURL: https://github.com/AmichaiHadad/eks_app_2.git
         targetRevision: main
         path: helm-chart/{{name}}
-        {{- if hasKey . "valueFiles" }}
-        valueFiles:
-        {{- range .valueFiles }}
-        - {{ . }}
-        {{- end }}
-        {{- end }}
       destination:
         server: '{{server}}'
         namespace: '{{namespace}}'

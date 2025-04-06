@@ -184,13 +184,6 @@ spec:
         command: ["sysctl", "-w", "vm.max_map_count=262144"]
         securityContext:
           privileged: true
-      - name: configure-ilm
-        image: curlimages/curl:7.87.0
-        command: ['sh', '/usr/local/bin/setup-ilm.sh']
-        volumeMounts:
-        - name: elasticsearch-ilm
-          mountPath: /usr/local/bin/setup-ilm.sh
-          subPath: setup-ilm.sh
       containers:
       - name: elasticsearch
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -231,6 +224,74 @@ spec:
           limits:
             cpu: {{ .Values.resources.limits.cpu }}
             memory: {{ .Values.resources.limits.memory }}
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - |
+                # Wait for Elasticsearch to be ready (give it some time to start)
+                sleep 30
+                until curl -s http://localhost:9200/_cluster/health | grep -q 'status.*green\|status.*yellow'; do
+                  echo "Waiting for Elasticsearch cluster to be ready..."
+                  sleep 5
+                done
+
+                # Create ILM policy for log rotation
+                curl -X PUT "localhost:9200/_ilm/policy/logs-policy" -H 'Content-Type: application/json' -d'{
+                  "policy": {
+                    "phases": {
+                      "hot": {
+                        "min_age": "0ms",
+                        "actions": {
+                          "rollover": {
+                            "max_age": "7d",
+                            "max_size": "10gb"
+                          },
+                          "set_priority": {
+                            "priority": 100
+                          }
+                        }
+                      },
+                      "warm": {
+                        "min_age": "30d",
+                        "actions": {
+                          "shrink": {
+                            "number_of_shards": 1
+                          },
+                          "forcemerge": {
+                            "max_num_segments": 1
+                          },
+                          "set_priority": {
+                            "priority": 50
+                          }
+                        }
+                      },
+                      "delete": {
+                        "min_age": "90d",
+                        "actions": {
+                          "delete": {}
+                        }
+                      }
+                    }
+                  }
+                }'
+
+                # Create index template with ILM policy
+                curl -X PUT "localhost:9200/_index_template/logs-template" -H 'Content-Type: application/json' -d'{
+                  "index_patterns": ["k8s-logs-*"],
+                  "template": {
+                    "settings": {
+                      "index.lifecycle.name": "logs-policy",
+                      "index.lifecycle.rollover_alias": "k8s-logs",
+                      "index.number_of_shards": 3,
+                      "index.number_of_replicas": 1
+                    }
+                  }
+                }'
+                
+                echo "ILM policy and index template configured successfully"
         readinessProbe:
           httpGet:
             path: /_cluster/health?local=true
@@ -256,10 +317,6 @@ spec:
       - name: config
         configMap:
           name: elasticsearch-config
-      - name: elasticsearch-ilm
-        configMap:
-          name: elasticsearch-ilm
-          defaultMode: 0755
   volumeClaimTemplates:
   - metadata:
       name: data
