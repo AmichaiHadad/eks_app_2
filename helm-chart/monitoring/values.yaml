@@ -216,21 +216,22 @@ kube-prometheus-stack:
     # Pre-installed dashboards
     dashboards:
       default:
+        # Make sure all dashboard IDs and revisions are strings to avoid label issues
         kubernetes-cluster:
-          gnetId: 7249
-          revision: 1
+          gnetId: "7249"  # Quoted to ensure string type
+          revision: "1"   # Quoted to ensure string type 
           datasource: Prometheus
         mysql-overview:
-          gnetId: 7362
-          revision: 1
+          gnetId: "7362"  # Quoted to ensure string type
+          revision: "1"   # Quoted to ensure string type
           datasource: Prometheus
         elasticsearch:
-          gnetId: 6483
-          revision: 1
+          gnetId: "6483"  # Quoted to ensure string type
+          revision: "1"   # Quoted to ensure string type
           datasource: Prometheus
         node-exporter:
-          gnetId: 1860
-          revision: 22
+          gnetId: "1860"  # Quoted to ensure string type
+          revision: "22"  # Quoted to ensure string type
           datasource: Prometheus
   
   # Kube state metrics
