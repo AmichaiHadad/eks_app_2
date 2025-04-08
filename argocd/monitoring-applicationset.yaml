@@ -44,8 +44,6 @@ spec:
               value: 'eks-blizzard-{{region}}'
             - name: global.region
               value: '{{region}}'
-            - name: externalDNS.serviceAccount.annotations."eks\.amazonaws\.com/role-arn"
-              value: 'arn:aws:iam::163459217187:role/eks-blizzard-{{region}}-route53-dns-manager-irsa'
       destination:
         server: '{{url}}'
         namespace: monitoring
