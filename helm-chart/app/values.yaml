@@ -5,7 +5,7 @@ replicaCount: 2
 
 image:
   repository: ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/app
-  tag: de6a229b8be34109f8e8d88632ade2675bb2182a
+  tag: latest
   pullPolicy: Always
 
 nameOverride: ""
@@ -42,10 +42,10 @@ ingress:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
-    # ACM certificate ARN will be added here
-    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:...
+    # Define the certificate ARN annotation so it can be overridden by the ApplicationSet parameter
+    alb.ingress.kubernetes.io/certificate-arn: "placeholder-arn"
   hosts:
-    - host: app.blizzard.co.il
+    - host: app.blizzard.co.il # This will be overridden by the ApplicationSet parameter
       paths:
         - path: /
           pathType: Prefix
