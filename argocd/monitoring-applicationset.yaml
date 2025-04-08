@@ -24,7 +24,7 @@ spec:
           valueFiles:
             - values.yaml
           parameters:
-            - name: grafana.ingress.hosts[0]
+            - name: grafana.ingress.hosts[0].host
               value: 'grafana.{{region}}.blizzard.co.il'
             - name: grafana.ingress.annotations
               value: |
