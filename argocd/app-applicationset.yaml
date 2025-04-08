@@ -31,7 +31,7 @@ spec:
               value: 'app-{{region}}.blizzard.co.il'
             - name: region
               value: '{{region}}'
-            - name: ingress.annotations."alb\.ingress\.kubernetes\.io/certificate-arn"
+            - name: ingress.acmCertificateArn
               value: '{{acm_certificate_arn}}'
       destination:
         server: '{{url}}'

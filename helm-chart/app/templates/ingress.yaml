@@ -14,6 +14,10 @@ metadata:
       {{ $key }}: {{ $value | quote }}
       {{- end }}
     {{- end }}
+    # Conditionally add the certificate ARN annotation if provided
+    {{- if .Values.ingress.acmCertificateArn }}
+    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.ingress.acmCertificateArn | quote }}
+    {{- end }}
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className }}
