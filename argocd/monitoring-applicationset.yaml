@@ -47,6 +47,12 @@ spec:
       destination:
         server: '{{url}}'
         namespace: monitoring
+      # Ignore the problematic ExternalSecret resource
+      ignoreDifferences:
+      - group: external-secrets.io
+        kind: ExternalSecret
+        name: alertmanager-slack-webhook
+        namespace: monitoring
       syncPolicy:
         automated:
           prune: true
