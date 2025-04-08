@@ -198,13 +198,7 @@ kube-prometheus-stack:
         alb.ingress.kubernetes.io/target-type: ip
         alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
         alb.ingress.kubernetes.io/ssl-redirect: "443"
-        # External DNS annotation to automatically create DNS record
-        external-dns.alpha.kubernetes.io/hostname: grafana.blizzard.co.il
         external-dns.alpha.kubernetes.io/ttl: "300"
-        # ACM certificate ARN will be added here
-        # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:...
-      hosts:
-        - grafana.blizzard.co.il
     sidecar:
       dashboards:
         enabled: true

@@ -25,11 +25,17 @@ spec:
             - values.yaml
           parameters:
             - name: grafana.ingress.hosts[0]
-              value: 'grafana.blizzard.co.il'
+              value: 'grafana.{{region}}.blizzard.co.il'
+            - name: grafana.ingress.annotations."external-dns\.alpha\.kubernetes\.io/hostname"
+              value: 'grafana.{{region}}.blizzard.co.il'
+            - name: grafana.ingress.annotations."alb\.ingress\.kubernetes\.io/certificate-arn"
+              value: 'arn:aws:acm:us-east-1:163459217187:certificate/4ff90f30-64f8-40e1-b1b3-8f13d5fac876'
             - name: clusterName
               value: 'eks-blizzard-{{region}}'
             - name: global.region
               value: '{{region}}'
+            - name: externalDNS.serviceAccount.annotations."eks\.amazonaws\.com/role-arn"
+              value: 'arn:aws:iam::163459217187:role/eks-blizzard-{{region}}-route53-dns-manager-irsa'
       destination:
         server: '{{url}}'
         namespace: monitoring
