@@ -7,10 +7,17 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "app.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    # Static annotations from values.yaml
+    {{- with .Values.ingress.annotations }}
+      {{- range $key, $value := . }}
+      {{ $key }}: {{ $value | quote }}
+      {{- end }}
+    {{- end }}
+    # Conditionally add the certificate ARN annotation based on region
+    {{- $region := .Values.region | default "us-east-1" -}} # Default to us-east-1 if not passed
+    {{- $certArn := ternary "arn:aws:acm:us-east-1:163459217187:certificate/4ff90f30-64f8-40e1-b1b3-8f13d5fac876" "arn:aws:acm:us-west-2:163459217187:certificate/YOUR-US-WEST-2-ARN-HERE" (eq $region "us-east-1") -}}
+    alb.ingress.kubernetes.io/certificate-arn: {{ $certArn | quote }}
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className }}

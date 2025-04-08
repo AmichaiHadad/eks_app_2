@@ -28,8 +28,8 @@ spec:
               value: '163459217187.dkr.ecr.{{region}}.amazonaws.com/eks-blizzard/app'
             - name: ingress.hosts[0].host
               value: 'app.{{region}}.blizzard.co.il'
-            - name: ingress.annotations."alb\.ingress\.kubernetes\.io/certificate-arn"
-              value: '{{ region == "us-east-1" ? "arn:aws:acm:us-east-1:163459217187:certificate/4ff90f30-64f8-40e1-b1b3-8f13d5fac876" : "arn:aws:acm:us-west-2:163459217187:certificate/YOUR-US-WEST-2-ARN-HERE" }}'
+            - name: region
+              value: '{{region}}'
       destination:
         server: '{{url}}'
         namespace: app
