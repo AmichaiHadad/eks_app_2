@@ -1,4 +1,4 @@
-{{ if .Values.kube-prometheus-stack.grafana.enabled }}
+{{ if index .Values "kube-prometheus-stack" "grafana" "enabled" }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -16,7 +16,7 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     # Use the certificate ARN directly from values
-    alb.ingress.kubernetes.io/certificate-arn: {{ index .Values "kube-prometheus-stack" "grafana" "ingress" "annotations" "alb\.ingress\.kubernetes\.io/certificate-arn" }}
+    alb.ingress.kubernetes.io/certificate-arn: {{ index .Values "kube-prometheus-stack" "grafana" "ingress" "annotations" "alb\\.ingress\\.kubernetes\\.io/certificate-arn" }}
     # Define the hostname for ExternalDNS
     external-dns.alpha.kubernetes.io/hostname: grafana-{{ .Values.global.region }}.blizzard.co.il
     external-dns.alpha.kubernetes.io/ttl: "300"
