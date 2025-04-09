@@ -39,13 +39,38 @@ spec:
             - name: {{ .name }}
               value: {{ .value | quote }}
             {{- end }}
-            {{- range .Values.secrets }}
-            - name: {{ .name }}
+            # Mount weather API key from app-secrets
+            - name: WEATHER_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .secretKeyRef.name }}
-                  key: {{ .secretKeyRef.key }}
-            {{- end }}
+                  name: app-secrets # Secret created by app-weather-api-external-secret
+                  key: weather-api-key
+            # Mount DB credentials from mysql-app-creds
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-app-creds # Use the NEW app-specific secret
+                  key: host
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-app-creds # Use the NEW app-specific secret
+                  key: port
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-app-creds # Use the NEW app-specific secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-app-creds # Use the NEW app-specific secret
+                  key: password
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-app-creds # Use the NEW app-specific secret
+                  key: database
             # Downward API for pod name (container ID)
             - name: CONTAINER_ID
               valueFrom:

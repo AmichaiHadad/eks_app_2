@@ -43,22 +43,10 @@ mysql:
 
   # Database configuration
   auth:
-    # Let the chart generate/manage the root password internally
-    rootPassword: ""
     database: "app_db"
-    username: "app_user"
-    # Use existingSecret ONLY for the application user password
-    existingSecret: "mysql-chart-credentials" # K8s secret created by ESO in 'data' namespace for app user
+    existingSecret: "mysql-chart-credentials" # K8s secret populated by mysql-root-eso-sync
     secretKeys:
-      userPasswordKey: mysql-password # Key within secret holding app user password
-      # Do NOT specify rootPasswordKey - let chart manage root
-
-    # Enable and configure the dedicated probe user
-    probe:
-      enabled: true
-      username: "probeuser"
-      # Let the chart generate the probe password internally by leaving this empty/uncommented
-      # password: ""
+      rootPasswordKey: mysql-root-password
 
   # initdbScripts section is removed entirely
 
