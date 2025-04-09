@@ -24,6 +24,7 @@ mysql:
     securityContext:
       fsGroup: 1001
       runAsUser: 1001
+    # Use default probes which rely on internal root/probe user
     livenessProbe:
       enabled: true
       initialDelaySeconds: 30
@@ -43,15 +44,27 @@ mysql:
 
   # Database configuration
   auth:
-    database: "app_db"
-    username: "app_user"
-    # Use existingSecret to provide BOTH root and app user passwords
-    existingSecret: "mysql-chart-credentials" # K8s secret populated by mysql-chart-passwords-eso-sync
-    secretKeys:
-      # Point to the root password key synced by ESO
-      rootPasswordKey: mysql-root-password
-      # Point to the app user password key synced by ESO
-      userPasswordKey: mysql-password
+    # Let chart manage root password internally
+    rootPassword: ""
+    database: "app_db" # Chart creates this DB
+    username: "app_user" # Chart creates this user
+    # Provide app user password from a K8s secret synced by ESO
+    password:
+      valueFrom:
+        secretKeyRef:
+          name: mysql-app-user-password-secret # New secret name for app password only
+          key: mysql-password
+    # Remove existingSecret and secretKeys - we provide the app password directly via 'password.valueFrom'
+    # existingSecret: "mysql-chart-credentials"
+    # secretKeys:
+    #   rootPasswordKey: mysql-root-password
+    #   userPasswordKey: mysql-password
+
+    # Enable dedicated probe user, managed internally by chart
+    probe:
+      enabled: true
+      username: "probeuser"
+      # Let chart generate password
 
   # initdbScripts section is removed entirely
 
@@ -60,7 +73,7 @@ mysql:
     type: ClusterIP
     port: 3306
 
-  # Top-level security context (might be needed by Bitnami chart structure)
+  # Top-level security context
   securityContext:
     enabled: true
     fsGroup: 1001
