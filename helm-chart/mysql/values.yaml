@@ -1,9 +1,11 @@
 # MySQL Helm chart values
 mysql:
-  # Use StatefulSet instead of Deployment
-  architecture: standalone
-  
-  # Schedule on data nodes
+  # Remove region field
+  # region: "us-east-1" # Default, will be overridden by ApplicationSet
+
+  architecture: standalone # Use StatefulSet
+
+  # Consolidate all primary node settings under this block
   primary:
     nodeSelector:
       node-role: data
@@ -11,8 +13,6 @@ mysql:
       - key: role
         value: data
         effect: NoSchedule
-    
-    # Resource allocations
     resources:
       limits:
         cpu: 1000m
@@ -20,19 +20,13 @@ mysql:
       requests:
         cpu: 500m
         memory: 1Gi
-    
-    # Persistent storage
     persistence:
       enabled: true
       storageClass: "gp3"
       size: 20Gi
-    
-    # Security
     securityContext:
       fsGroup: 1001
       runAsUser: 1001
-    
-    # Health checks
     livenessProbe:
       enabled: true
       initialDelaySeconds: 30
@@ -47,25 +41,28 @@ mysql:
       timeoutSeconds: 1
       failureThreshold: 3
       successThreshold: 1
-  
-  # Database configuration
+    # Add labels here if the chart expects them under primary
+    labels:
+      role: mysql-primary
+
+  # Database configuration - use existing secret for app user
   auth:
-    # Let the chart generate the root password by setting it to empty string
-    rootPassword: ""
+    rootPassword: "" # Let chart auto-generate root password
     database: "app_db"
     username: "app_user"
-  
+    existingSecret: "mysql-chart-credentials" # K8s secret created by ESO in 'data' namespace
+    secretKeys:
+      userPasswordKey: password # Key within 'mysql-chart-credentials' containing the app user password
+
+  # Remove initdbScripts - user/db created by chart using existingSecret for password
+  # initdbScripts: ... (Removed)
+
   # Service configurations
   service:
     type: ClusterIP
-    port: 3306  
-  
-  # Primary label
-  primary:
-    labels:
-      role: mysql-primary
-  
-  # Additional security parameters
+    port: 3306
+
+  # Top-level security context (might be needed by Bitnami chart structure)
   securityContext:
     enabled: true
     fsGroup: 1001
