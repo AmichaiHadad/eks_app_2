@@ -36,6 +36,7 @@ spec:
               value: 'eks-blizzard-{{region}}'
             - name: global.region
               value: '{{region}}'
+          skipCrds: true
       destination:
         server: '{{url}}'
         namespace: monitoring
