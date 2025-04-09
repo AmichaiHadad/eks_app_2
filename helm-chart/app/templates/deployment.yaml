@@ -43,34 +43,30 @@ spec:
             - name: WEATHER_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: app-secrets # Secret created by app-weather-api-external-secret
+                  # This secret should still be created separately for the weather key if needed
+                  # Ensure an ExternalSecret exists for this in app/templates if it's managed via ESO
+                  name: app-secrets
                   key: weather-api-key
-            # Mount DB credentials from mysql-app-creds
+            # Mount DB credentials from the secret managed by the MySQL chart
             - name: DB_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-app-creds # Use the NEW app-specific secret
-                  key: host
+              value: "mysql.data.svc.cluster.local" # Use internal service name
             - name: DB_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-app-creds # Use the NEW app-specific secret
-                  key: port
+              value: "3306"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: mysql-app-creds # Use the NEW app-specific secret
-                  key: username
+                  name: mysql-chart-credentials # Use the secret created in the 'data' namespace
+                  key: mysql-user # Key for the app user (needs to be synced by MySQL chart's ESO)
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-app-creds # Use the NEW app-specific secret
-                  key: password
+                  name: mysql-chart-credentials # Use the secret created in the 'data' namespace
+                  key: mysql-password # Key for the app password (synced by MySQL chart's ESO)
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-app-creds # Use the NEW app-specific secret
-                  key: database
+                  name: mysql-chart-credentials # Use the secret created in the 'data' namespace
+                  key: mysql-database # Key for the database name (synced by MySQL chart's ESO)
             # Downward API for pod name (container ID)
             - name: CONTAINER_ID
               valueFrom:

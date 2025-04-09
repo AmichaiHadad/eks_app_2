@@ -44,9 +44,14 @@ mysql:
   # Database configuration
   auth:
     database: "app_db"
-    existingSecret: "mysql-chart-credentials" # K8s secret populated by mysql-root-eso-sync
+    username: "app_user" # Define the app username for the chart to create
+    # Use existingSecret to provide BOTH root and app user passwords
+    existingSecret: "mysql-chart-credentials" # K8s secret populated by mysql-chart-passwords-eso-sync
     secretKeys:
+      # Point to the root password key synced by ESO
       rootPasswordKey: mysql-root-password
+      # Point to the app user password key synced by ESO
+      userPasswordKey: mysql-password
 
   # initdbScripts section is removed entirely
 
