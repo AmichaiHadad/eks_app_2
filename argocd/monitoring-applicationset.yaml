@@ -40,6 +40,14 @@ spec:
               value: grafana-{{region}}.blizzard.co.il
             - name: grafana.ingress.annotations."external-dns\.alpha\.kubernetes\.io/ttl"
               value: "300"
+            - name: kube-prometheus-stack.grafana.serviceMonitor.enabled
+              value: "true"
+            - name: externalDns.enabled
+              value: "false"
+            - name: kube-prometheus-stack.externalDns.enabled
+              value: "false"
+            - name: kube-prometheus-stack.external-dns.enabled
+              value: "false"
             - name: clusterName
               value: 'eks-blizzard-{{region}}'
             - name: global.region

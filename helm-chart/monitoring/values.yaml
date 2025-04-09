@@ -251,10 +251,20 @@ kube-prometheus-stack:
       node: true
       prometheus: true
       time: true
+  
+  # Disable any external-dns components in kube-prometheus-stack
+  externalDns:
+    enabled: false
+  
+  external-dns:
+    enabled: false
 
-# Disable ExternalDNS creation from this chart (should be managed by Terraform)
-# Assuming externalDns might be a subchart or option
+# Explicitly disable external-dns at the root level
+# This ensures we're using the cluster-wide external-dns deployed by terragrunt
 externalDns:
+  enabled: false
+
+external-dns:
   enabled: false
 
 # MySQL exporter

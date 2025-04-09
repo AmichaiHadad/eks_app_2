@@ -16,6 +16,9 @@ metadata:
     {{- if .Values.ingress.acmCertificateArn }}
     alb.ingress.kubernetes.io/certificate-arn: {{ .Values.ingress.acmCertificateArn | quote }}
     {{- end }}
+    # Explicitly add hostname annotation for ExternalDNS
+    external-dns.alpha.kubernetes.io/hostname: {{ index .Values.ingress.hosts 0 "host" | quote }}
+    external-dns.alpha.kubernetes.io/ttl: "300" # Optional: Set DNS record TTL
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className }}
