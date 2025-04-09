@@ -50,8 +50,8 @@ mysql:
   
   # Database configuration
   auth:
-    # These will be overridden by External Secrets in production
-    rootPassword: "placeholder-root-password"
+    # Let the chart generate the root password by setting it to empty string
+    rootPassword: ""
     database: "app_db"
     username: "app_user"
   
