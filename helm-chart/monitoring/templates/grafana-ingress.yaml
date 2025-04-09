@@ -20,6 +20,8 @@ metadata:
     # Define the hostname for ExternalDNS
     external-dns.alpha.kubernetes.io/hostname: grafana-{{ .Values.global.region }}.blizzard.co.il
     external-dns.alpha.kubernetes.io/ttl: "300"
+    # Set the correct owner ID to match external-dns expectations
+    external-dns.alpha.kubernetes.io/owner: "eks-blizzard-us-east-1"
 spec:
   rules:
     - host: grafana-{{ .Values.global.region }}.blizzard.co.il
