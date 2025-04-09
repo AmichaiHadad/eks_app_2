@@ -37,17 +37,7 @@ kube-prometheus-stack:
       storageClassName: gp2
       size: 10Gi
     ingress:
-      enabled: true
-      ingressClassName: alb
-      annotations:
-        kubernetes.io/ingress.class: alb
-        alb.ingress.kubernetes.io/scheme: internet-facing
-        alb.ingress.kubernetes.io/target-type: ip
-        alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-        alb.ingress.kubernetes.io/ssl-redirect: "443"
-        alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:163459217187:certificate/4ff90f30-64f8-40e1-b1b3-8f13d5fac876
-        external-dns.alpha.kubernetes.io/hostname: grafana-{{ .Values.global.region }}.blizzard.co.il
-        external-dns.alpha.kubernetes.io/ttl: "300"
+      enabled: false
     sidecar:
       dashboards:
         enabled: true
