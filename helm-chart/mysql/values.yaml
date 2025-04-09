@@ -44,7 +44,7 @@ mysql:
   # Database configuration
   auth:
     database: "app_db"
-    username: "app_user" # Define the app username for the chart to create
+    username: "app_user"
     # Use existingSecret to provide BOTH root and app user passwords
     existingSecret: "mysql-chart-credentials" # K8s secret populated by mysql-chart-passwords-eso-sync
     secretKeys:
