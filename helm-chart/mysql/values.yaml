@@ -1,7 +1,6 @@
 # MySQL Helm chart values
 mysql:
-  # Remove region field
-  # region: "us-east-1" # Default, will be overridden by ApplicationSet
+  # region: "us-east-1" # Removed region field
 
   architecture: standalone # Use StatefulSet
 
@@ -45,17 +44,15 @@ mysql:
     labels:
       role: mysql-primary
 
-  # Database configuration - use existing secret for app user
+  # Database configuration - Use existingSecret for app user, let chart manage root
   auth:
     rootPassword: "" # Let chart auto-generate root password
     database: "app_db"
     username: "app_user"
+    # password: "placeholder-app-password" # REMOVED
     existingSecret: "mysql-chart-credentials" # K8s secret created by ESO in 'data' namespace
     secretKeys:
-      userPasswordKey: password # Key within 'mysql-chart-credentials' containing the app user password
-
-  # Remove initdbScripts - user/db created by chart using existingSecret for password
-  # initdbScripts: ... (Removed)
+      userPasswordKey: password # Key within 'mysql-chart-credentials' holding the app user password
 
   # Service configurations
   service:
