@@ -44,6 +44,14 @@ mysql:
     labels:
       role: mysql-primary
 
+    # Explicitly set env var for root password from the secret for probes
+    extraEnvVars:
+      - name: MYSQL_ROOT_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: mysql-chart-credentials # The K8s secret name
+            key: mysql-root-password   # The key within the secret
+
   # Database configuration - Use existingSecret for app user AND root
   auth:
     # rootPassword: "" # REMOVE - Let existingSecret handle root password
