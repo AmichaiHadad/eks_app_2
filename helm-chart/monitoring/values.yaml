@@ -84,6 +84,7 @@ kube-prometheus-stack:
     enabled: true
     serviceAccount:
       create: true
+    # Add node placement for Prometheus pods
     nodeSelector:
       node-role: monitoring
     tolerations:
@@ -155,6 +156,7 @@ kube-prometheus-stack:
   # Alertmanager configuration
   alertmanager:
     enabled: true
+    # Add node placement for Alertmanager pods
     nodeSelector:
       node-role: monitoring
     tolerations:
