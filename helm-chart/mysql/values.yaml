@@ -51,8 +51,8 @@ mysql:
     username: "app_user"
     existingSecret: "mysql-chart-credentials" # K8s secret created by ESO in 'data' namespace
     secretKeys:
-      userPasswordKey: password # Key within 'mysql-chart-credentials' holding the app user password
-      rootPasswordKey: root_password # Key within 'mysql-chart-credentials' holding the root password
+      userPasswordKey: mysql-password
+      rootPasswordKey: mysql-root-password
 
   # Service configurations
   service:
