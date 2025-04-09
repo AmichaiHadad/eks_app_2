@@ -2,5 +2,5 @@ apiVersion: v2
 name: app
 description: A Helm chart for the EKS Python web application
 type: application
-version: 0.1.63
-appVersion: "1c553a7940f7cf18a7c4b595df73c3033b93f6a5"
+version: 0.1.0
+appVersion: "1.0.0"
