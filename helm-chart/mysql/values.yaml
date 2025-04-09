@@ -1,7 +1,5 @@
 # MySQL Helm chart values
 mysql:
-  # region: "us-east-1" # Removed region field
-
   architecture: standalone # Use StatefulSet
 
   # Consolidate all primary node settings under this block
@@ -40,7 +38,6 @@ mysql:
       timeoutSeconds: 1
       failureThreshold: 3
       successThreshold: 1
-    # Add labels here if the chart expects them under primary
     labels:
       role: mysql-primary
 
@@ -49,18 +46,20 @@ mysql:
       - name: MYSQL_ROOT_PASSWORD
         valueFrom:
           secretKeyRef:
-            name: mysql-chart-credentials # The K8s secret name
-            key: mysql-root-password   # The key within the secret
+            name: mysql-chart-credentials # The K8s secret name created by ESO
+            key: mysql-root-password   # The key within the secret holding the root password
 
   # Database configuration - Use existingSecret for app user AND root
   auth:
-    # rootPassword: "" # REMOVE - Let existingSecret handle root password
+    rootPassword: "" # Let existingSecret handle root password
     database: "app_db"
     username: "app_user"
     existingSecret: "mysql-chart-credentials" # K8s secret created by ESO in 'data' namespace
     secretKeys:
-      userPasswordKey: mysql-password
-      rootPasswordKey: mysql-root-password
+      userPasswordKey: mysql-password # Key within secret holding app user password
+      rootPasswordKey: mysql-root-password # Key within secret holding root password
+
+  # initdbScripts section is removed entirely
 
   # Service configurations
   service:
