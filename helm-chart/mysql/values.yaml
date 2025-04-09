@@ -44,15 +44,15 @@ mysql:
     labels:
       role: mysql-primary
 
-  # Database configuration - Use existingSecret for app user, let chart manage root
+  # Database configuration - Use existingSecret for app user AND root
   auth:
-    rootPassword: "" # Let chart auto-generate root password
+    # rootPassword: "" # REMOVE - Let existingSecret handle root password
     database: "app_db"
     username: "app_user"
-    # password: "placeholder-app-password" # REMOVED
     existingSecret: "mysql-chart-credentials" # K8s secret created by ESO in 'data' namespace
     secretKeys:
       userPasswordKey: password # Key within 'mysql-chart-credentials' holding the app user password
+      rootPasswordKey: root_password # Key within 'mysql-chart-credentials' holding the root password
 
   # Service configurations
   service:
