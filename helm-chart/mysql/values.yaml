@@ -41,16 +41,20 @@ mysql:
       successThreshold: 1
     labels:
       role: mysql-primary
-    extraEnvVarsSecret: "mysql-app-user-password-secret"
 
   # Database configuration
   auth:
-    # Use the existing secret with both formats
-    existingSecret: "mysql-app-user-password-secret"
-    # Configure which keys in the secret to use - these are the kebab-case keys
-    secretKeys:
-      root: "mysql-root-password"
-      password: "mysql-password"
+    # Set a random root password directly
+    rootPassword: "change-me-now-random-123!"
+    # Reference the user password from our secret
+    password: 
+      valueFrom:
+        secretKeyRef:
+          name: mysql-app-user-password-secret
+          key: db-password
+    # Database and user settings
+    database: "app_db"
+    username: "app_user"
     # Enable dedicated probe user, managed internally by chart
     probe:
       enabled: true

@@ -31,16 +31,17 @@ spec:
             # MySQL auth configuration
             mysql:
               auth:
-                # Use our existing secret with both formats
-                existingSecret: "mysql-app-user-password-secret"
-                # Keys in kebab-case format that the chart will map to environment variables
-                secretKeys:
-                  root: "mysql-root-password"
-                  password: "mysql-password"
-              # Primary node configuration
-              primary:
-                # Additional direct mapping of secret to environment variables
-                extraEnvVarsSecret: "mysql-app-user-password-secret"
+                # Set a secure root password directly
+                rootPassword: "change-me-now-random-123!"
+                # Get the app user password from our secret 
+                password:
+                  valueFrom:
+                    secretKeyRef:
+                      name: mysql-app-user-password-secret
+                      key: db-password
+                # Database and user settings
+                database: "app_db"
+                username: "app_user"
       destination:
         server: '{{server}}'
         namespace: '{{namespace}}'
