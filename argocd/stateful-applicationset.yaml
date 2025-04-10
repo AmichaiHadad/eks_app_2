@@ -10,11 +10,14 @@ spec:
           - name: mysql
             namespace: data
             server: https://kubernetes.default.svc
+            values:
+              mysql_app_user_aws_secret_name: mysql-app-user-secret
           - name: elasticsearch
             namespace: data
             server: https://kubernetes.default.svc
-            # Using direct custom chart with official Elasticsearch image
-            # instead of Bitnami chart to avoid security config issues
+            values:
+              replicas: "3"
+              discovery: "multi-node"
           - name: fluentd
             namespace: logging
             server: https://kubernetes.default.svc
@@ -30,20 +33,12 @@ spec:
         path: helm-chart/{{name}}
         helm:
           parameters:
-            # Only pass mysql secret name param if the app is mysql
-            {{- if eq .name "mysql" }}
             - name: secrets.mysqlAppUserAwsSecretName
-              value: '{{ .values.mysql_app_user_aws_secret_name }}'
-            {{- end }}
-            # Add parameters for Elasticsearch
-            {{- if eq .name "elasticsearch" }}
+              value: '{{values.mysql_app_user_aws_secret_name}}'
             - name: replicas
-              value: "3"
-              forceString: true
+              value: '{{values.replicas}}'
             - name: discovery
-              value: "multi-node"
-            {{- end }}
-            # Add other specific parameters here if needed for Fluentd later
+              value: '{{values.discovery}}'
       destination:
         server: '{{server}}'
         namespace: '{{namespace}}'
