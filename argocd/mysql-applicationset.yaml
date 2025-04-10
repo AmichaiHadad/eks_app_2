@@ -22,25 +22,6 @@ spec:
         path: helm-chart/{{name}}
         helm:
           values: |
-            # AWS configuration
-            aws:
-              region: "us-east-1"
-              accountId: "163459217187"
-            
-            # IAM policy configuration
-            iamPolicy:
-              create: true
-              path: "/"
-              roleName: "eks-blizzard-us-east-1-external-secrets"
-            
-            # IAM controller configuration
-            iamController:
-              enabled: true
-              name: "iam-controller"
-              namespace: "kube-system"
-              serviceAccount:
-                name: "iam-controller"
-            
             # MySQL auth configuration
             mysql:
               auth:
