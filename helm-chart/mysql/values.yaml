@@ -52,13 +52,11 @@ mysql:
     password:
       valueFrom:
         secretKeyRef:
-          name: mysql-app-user-password-secret # New secret name for app password only
+          name: mysql-app-user-password-secret # Secret created by mysql-app-password-eso-sync
           key: mysql-password
-    # Remove existingSecret and secretKeys - we provide the app password directly via 'password.valueFrom'
-    # existingSecret: "mysql-chart-credentials"
-    # secretKeys:
-    #   rootPasswordKey: mysql-root-password
-    #   userPasswordKey: mysql-password
+    # Remove existingSecret and secretKeys
+    # existingSecret: "..."
+    # secretKeys: { ... }
 
     # Enable dedicated probe user, managed internally by chart
     probe:
@@ -78,3 +76,7 @@ mysql:
     enabled: true
     fsGroup: 1001
     runAsUser: 1001
+
+# Add secrets section for dynamic AWS SM name
+secrets:
+  mysqlAppUserAwsSecretName: ""

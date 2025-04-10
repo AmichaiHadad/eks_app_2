@@ -5,6 +5,11 @@ clusterName: eks-blizzard-us-east-1
 global:
   region: us-east-1
 
+# Secret names - these will be overridden by external-secrets module
+secretPrefix: eks-blizzard
+slackWebhookSecretName: ""  # Will be overridden by Argo CD application from Terraform output
+grafanaAdminSecretName: ""  # Will be overridden by Argo CD application from Terraform output
+
 # Alertmanager webhook secret is expected to be managed externally
 # Either created manually or via External Secrets
 # The secret should be named 'alertmanager-slack-webhook' in the monitoring namespace

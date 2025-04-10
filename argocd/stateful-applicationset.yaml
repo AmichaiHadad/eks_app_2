@@ -30,11 +30,20 @@ spec:
         path: helm-chart/{{name}}
         helm:
           parameters:
-          - name: replicas
-            value: "3"
-            forceString: true
-          - name: discovery
-            value: "multi-node"
+            # Only pass mysql secret name param if the app is mysql
+            {{- if eq .element.name "mysql" }}
+            - name: secrets.mysqlAppUserAwsSecretName
+              value: '{{ element.values.mysql_app_user_aws_secret_name }}'
+            {{- end }}
+            # Add parameters for Elasticsearch
+            {{- if eq .element.name "elasticsearch" }}
+            - name: replicas
+              value: "3"
+              forceString: true
+            - name: discovery
+              value: "multi-node"
+            {{- end }}
+            # Add other specific parameters here if needed for Fluentd later
       destination:
         server: '{{server}}'
         namespace: '{{namespace}}'

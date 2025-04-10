@@ -33,6 +33,10 @@ spec:
               value: '{{region}}'
             - name: ingress.acmCertificateArn
               value: '{{acm_certificate_arn}}'
+            - name: secrets.weatherAPIAwsSecretName
+              value: '{{weather_api_aws_secret_name}}'
+            - name: secrets.mysqlAppUserAwsSecretName
+              value: '{{mysql_app_user_aws_secret_name}}'
       destination:
         server: '{{url}}'
         namespace: app
