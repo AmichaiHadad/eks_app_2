@@ -23,7 +23,9 @@ spec:
         helm:
           values: |
             secrets:
-              mysqlAppUserAwsSecretName: mysql-app-user-secret
+              # Use the full ARN for the AWS Secret Manager secret
+              mysqlAppUserAwsSecretName: "arn:aws:secretsmanager:us-east-1:163459217187:secret:mysql-app-user-secret"
+            
             mysql:
               auth:
                 password: ""
