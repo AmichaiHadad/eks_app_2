@@ -77,6 +77,9 @@ mysql:
     fsGroup: 1001
     runAsUser: 1001
 
-# Add secrets section for dynamic AWS SM name
+# AWS Secrets Manager details
 secrets:
-  mysqlAppUserAwsSecretName: "mysql-app-user-secret"
+  # This will be overridden in the ApplicationSet
+  mysqlAppUserSecretName: "eks-blizzard/mysql-app-user"
+  # Legacy reference, kept for backward compatibility
+  mysqlAppUserAwsSecretName: "eks-blizzard/mysql-app-user"
