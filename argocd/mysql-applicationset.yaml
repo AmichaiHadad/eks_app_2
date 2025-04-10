@@ -36,12 +36,10 @@ spec:
                 username: "app_user"
                 # Use existing secret with credentials
                 existingSecret: "mysql-app-user-password-secret"
-                # Specify password file mechanism
-                usePasswordFiles: true
-                # Configure which keys in the secret to use
-                customPasswordFiles:
-                  root: "/opt/bitnami/mysql/secrets/root-password"
-                  user: "/opt/bitnami/mysql/secrets/password"
+                # Specify which keys in the secret to use
+                secretKeys:
+                  root: "mysql-root-password"
+                  password: "mysql-password"
       destination:
         server: '{{server}}'
         namespace: '{{namespace}}'

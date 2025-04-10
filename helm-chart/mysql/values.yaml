@@ -51,12 +51,10 @@ mysql:
     username: "app_user"
     # Use the existing secret created by ExternalSecret
     existingSecret: "mysql-app-user-password-secret"
-    # Specify that credentials are stored in password files
-    usePasswordFiles: true
     # Configure which keys in the secret to use
-    customPasswordFiles:
-      root: "/opt/bitnami/mysql/secrets/root-password"
-      user: "/opt/bitnami/mysql/secrets/password"
+    secretKeys:
+      root: "mysql-root-password"
+      password: "mysql-password"
     # Enable dedicated probe user, managed internally by chart
     probe:
       enabled: true
