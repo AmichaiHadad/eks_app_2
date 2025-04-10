@@ -44,8 +44,9 @@ mysql:
 
   # Database configuration
   auth:
-    # Let the external secret handle the root password
-    rootPassword: ""
+    # Explicitly set password (these are placeholders that will be overridden by the secret)
+    rootPassword: "placeholder-replaced-by-secret"
+    password: "placeholder-replaced-by-secret"
     database: "app_db" # Chart creates this DB
     username: "app_user" # Chart creates this user
     # Provide credentials from the external secret
