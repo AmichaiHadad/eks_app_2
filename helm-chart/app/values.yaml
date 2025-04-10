@@ -5,7 +5,7 @@ replicaCount: 2
 
 image:
   repository: ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/app
-  tag: latest
+  tag: 45fbc7b3788ca7ea1516f916eb557a64c12aada7
   pullPolicy: Always
 
 nameOverride: ""
