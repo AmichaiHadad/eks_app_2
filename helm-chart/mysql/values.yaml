@@ -79,7 +79,14 @@ mysql:
 
 # AWS Secrets Manager details
 secrets:
-  # This will be overridden in the ApplicationSet
-  mysqlAppUserSecretName: "eks-blizzard/mysql-app-user"
-  # Legacy reference, kept for backward compatibility
-  mysqlAppUserAwsSecretName: "eks-blizzard/mysql-app-user"
+  # Use ConfigMap to read the AWS secret name - this is populated by Terraform
+  awsSecretNameFromConfigMap: "${secretName}"
+  
+  # Where to read the ConfigMap from
+  configMap:
+    name: "mysql-secret-name"
+    namespace: "data"
+
+  # Use pattern matching for AWS secrets
+  # This pattern will be used in the ExternalSecret to find the secret without hardcoding the exact name
+  awsSecretPattern: "eks-blizzard/mysql-app-user*"

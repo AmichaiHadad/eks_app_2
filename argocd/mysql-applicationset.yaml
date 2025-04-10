@@ -4,30 +4,29 @@ metadata:
   name: mysql-service
   namespace: argocd
 spec:
-  # Use the configMapGenerator to dynamically get the secret name
+  # Use list generator instead of configMap generator
   generators:
-    - configMap:
-        name: terraform-secret-outputs
-        namespace: argocd
-        labelSelector:
-          matchLabels:
-            app.kubernetes.io/part-of: external-secrets
+    - list:
+        elements:
+          - name: mysql
+            namespace: data
+            server: https://kubernetes.default.svc
   template:
     metadata:
-      name: mysql
+      name: '{{name}}'
       namespace: argocd
     spec:
       project: default
       source:
         repoURL: https://github.com/AmichaiHadad/eks_app_2.git
         targetRevision: main
-        path: helm-chart/mysql
+        path: helm-chart/{{name}}
         helm:
+          # Use pattern matching for AWS Secrets Manager secrets
           values: |
-            # Set the MySQL secret name from Terraform output via ConfigMap
+            # Use pattern matching instead of hardcoded secret name
             secrets:
-              mysqlAppUserSecretName: "{{values.mysql_secret_name}}"
-              mysqlAppUserAwsSecretName: "{{values.mysql_secret_name}}"
+              awsSecretPattern: "eks-blizzard/mysql-app-user*"
             
             # MySQL auth configuration
             mysql:
@@ -37,8 +36,8 @@ spec:
                 secretKeys:
                   password: "mysql-password"
       destination:
-        server: https://kubernetes.default.svc
-        namespace: data
+        server: '{{server}}'
+        namespace: '{{namespace}}'
       syncPolicy:
         automated:
           prune: true

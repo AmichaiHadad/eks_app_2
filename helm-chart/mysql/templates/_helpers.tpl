@@ -48,4 +48,15 @@ Selector labels
 {{- define "mysql.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "mysql.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }} 
+{{- end }}
+
+{{/*
+Get AWS Secret Name from values or default to ConfigMap value
+*/}}
+{{- define "mysql.getAWSSecretName" -}}
+{{- if .Values.secrets.awsSecretName -}}
+{{- .Values.secrets.awsSecretName -}}
+{{- else -}}
+{{- print "eks-blizzard/mysql-app-user-1btvf2" -}}
+{{- end -}}
+{{- end -}} 

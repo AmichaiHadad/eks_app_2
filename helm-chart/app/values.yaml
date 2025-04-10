@@ -5,7 +5,7 @@ replicaCount: 2
 
 image:
   repository: ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/app
-  tag: 2d3d8af0d3170c9e574f32e569c7f5c4bf65d051
+  tag: latest
   pullPolicy: Always
 
 nameOverride: ""
@@ -58,9 +58,9 @@ env:
 
 # Secrets configuration - source from External Secrets
 secrets:
-  # Define keys to receive dynamic AWS Secret Manager names from ApplicationSet
-  weatherAPIAwsSecretName: ""
-  mysqlAppUserAwsSecretName: ""
+  # Define patterns for AWS Secret Manager secrets using wildcards
+  weatherAPIPattern: "eks-blizzard/weather-api*"
+  mysqlAppUserPattern: "eks-blizzard/mysql-app-user*"
   
   # Define how environment variables map to Kubernetes secrets synced by ESO
   envFromSecrets:
