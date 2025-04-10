@@ -22,11 +22,11 @@ spec:
         targetRevision: main
         path: helm-chart/{{name}}
         helm:
-          # Use pattern matching for AWS Secrets Manager secrets
+          # AWS Secrets Manager configuration
           values: |
-            # Use pattern matching instead of hardcoded secret name
+            # Use prefix instead of pattern - ESO will handle the pattern matching
             secrets:
-              awsSecretPattern: "eks-blizzard/mysql-app-user*"
+              awsSecretPrefix: "eks-blizzard/mysql-app-user"
             
             # MySQL auth configuration
             mysql:

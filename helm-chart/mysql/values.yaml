@@ -79,14 +79,5 @@ mysql:
 
 # AWS Secrets Manager details
 secrets:
-  # Use ConfigMap to read the AWS secret name - this is populated by Terraform
-  awsSecretNameFromConfigMap: "${secretName}"
-  
-  # Where to read the ConfigMap from
-  configMap:
-    name: "mysql-secret-name"
-    namespace: "data"
-
-  # Use pattern matching for AWS secrets
-  # This pattern will be used in the ExternalSecret to find the secret without hardcoding the exact name
-  awsSecretPattern: "eks-blizzard/mysql-app-user*"
+  # Use prefix for AWS secrets without wildcard - ESO will handle the pattern matching
+  awsSecretPrefix: "eks-blizzard/mysql-app-user"
