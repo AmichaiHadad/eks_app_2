@@ -31,9 +31,11 @@ spec:
             # MySQL auth configuration
             mysql:
               auth:
-                password: ""
+                # Use existing secret with both credentials
                 existingSecret: "mysql-app-user-password-secret"
                 secretKeys:
+                  # Define which keys in the secret to use
+                  root: "mysql-root-password"
                   password: "mysql-password"
       destination:
         server: '{{server}}'
