@@ -31,12 +31,12 @@ spec:
         helm:
           parameters:
             # Only pass mysql secret name param if the app is mysql
-            {{- if eq .element.name "mysql" }}
+            {{- if eq .name "mysql" }}
             - name: secrets.mysqlAppUserAwsSecretName
-              value: '{{ element.values.mysql_app_user_aws_secret_name }}'
+              value: '{{ .values.mysql_app_user_aws_secret_name }}'
             {{- end }}
             # Add parameters for Elasticsearch
-            {{- if eq .element.name "elasticsearch" }}
+            {{- if eq .name "elasticsearch" }}
             - name: replicas
               value: "3"
               forceString: true
