@@ -44,21 +44,16 @@ mysql:
 
   # Database configuration
   auth:
-    # Do not specify passwords directly - they come from the secret
-    rootPassword: ""
-    password: ""
-    database: "app_db"
-    username: "app_user"
-    # Use the existing secret created by ExternalSecret
+    # Directly tell MySQL to use environment variables from our secret
     existingSecret: "mysql-app-user-password-secret"
-    # Configure which keys in the secret to use
-    secretKeys:
-      root: "mysql-root-password"
-      password: "mysql-password"
     # Enable dedicated probe user, managed internally by chart
     probe:
       enabled: true
       username: "probeuser"
+
+  # Configure the container to use environment variables directly
+  primary:
+    extraEnvVarsSecret: "mysql-app-user-password-secret"
 
   # initdbScripts section is removed entirely
 

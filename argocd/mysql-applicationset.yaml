@@ -31,15 +31,11 @@ spec:
             # MySQL auth configuration
             mysql:
               auth:
-                # Database configuration - don't specify passwords directly
-                database: "app_db"
-                username: "app_user"
-                # Use existing secret with credentials
+                # Use our existing secret with credentials
                 existingSecret: "mysql-app-user-password-secret"
-                # Specify which keys in the secret to use
-                secretKeys:
-                  root: "mysql-root-password"
-                  password: "mysql-password"
+              # Configure the container to use our secret directly
+              primary:
+                extraEnvVarsSecret: "mysql-app-user-password-secret"
       destination:
         server: '{{server}}'
         namespace: '{{namespace}}'
