@@ -41,19 +41,20 @@ mysql:
       successThreshold: 1
     labels:
       role: mysql-primary
+    extraEnvVarsSecret: "mysql-app-user-password-secret"
 
   # Database configuration
   auth:
-    # Directly tell MySQL to use environment variables from our secret
+    # Use the existing secret with both formats
     existingSecret: "mysql-app-user-password-secret"
+    # Configure which keys in the secret to use - these are the kebab-case keys
+    secretKeys:
+      root: "mysql-root-password"
+      password: "mysql-password"
     # Enable dedicated probe user, managed internally by chart
     probe:
       enabled: true
       username: "probeuser"
-
-  # Configure the container to use environment variables directly
-  primary:
-    extraEnvVarsSecret: "mysql-app-user-password-secret"
 
   # initdbScripts section is removed entirely
 

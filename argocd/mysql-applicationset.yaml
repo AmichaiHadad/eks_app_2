@@ -31,10 +31,15 @@ spec:
             # MySQL auth configuration
             mysql:
               auth:
-                # Use our existing secret with credentials
+                # Use our existing secret with both formats
                 existingSecret: "mysql-app-user-password-secret"
-              # Configure the container to use our secret directly
+                # Keys in kebab-case format that the chart will map to environment variables
+                secretKeys:
+                  root: "mysql-root-password"
+                  password: "mysql-password"
+              # Primary node configuration
               primary:
+                # Additional direct mapping of secret to environment variables
                 extraEnvVarsSecret: "mysql-app-user-password-secret"
       destination:
         server: '{{server}}'
