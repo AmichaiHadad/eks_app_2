@@ -5,7 +5,7 @@ replicaCount: 2
 
 image:
   repository: ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/app
-  tag: add38d084a6eb1b76f40a0a4522b321a115ae071
+  tag: latest
   pullPolicy: Always
 
 nameOverride: ""
@@ -61,6 +61,8 @@ secrets:
   # Define prefixes for AWS Secret Manager secrets (for pattern matching)
   weatherAPIPrefix: "eks-blizzard/weather-api"
   mysqlAppUserPrefix: "eks-blizzard/mysql-app-user"
+  # Optional path within the provider
+  path: ""
   
   # Define how environment variables map to Kubernetes secrets synced by ESO
   envFromSecrets:

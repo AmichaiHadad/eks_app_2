@@ -25,7 +25,7 @@ spec:
           values: |
             # AWS Secrets Manager configuration
             secrets:
-              # Use the prefix for finding AWS secrets by pattern matching
+              # Use prefix for pattern matching
               awsSecretPrefix: "eks-blizzard/mysql-app-user"
             
             # MySQL auth configuration

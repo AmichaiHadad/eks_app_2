@@ -81,3 +81,5 @@ mysql:
 secrets:
   # Use prefix for AWS secrets - the find mechanism will locate the active one
   awsSecretPrefix: "eks-blizzard/mysql-app-user"
+  # Optional path within the provider
+  path: ""
