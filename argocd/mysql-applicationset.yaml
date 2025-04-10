@@ -24,6 +24,12 @@ spec:
           values: |
             secrets:
               mysqlAppUserAwsSecretName: mysql-app-user-secret
+            mysql:
+              auth:
+                password: ""
+                existingSecret: "mysql-app-user-password-secret"
+                secretKeys:
+                  password: "mysql-password"
       destination:
         server: '{{server}}'
         namespace: '{{namespace}}'
