@@ -5,7 +5,7 @@ replicaCount: 2
 
 image:
   repository: ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/app
-  tag: 9389419b57de0a661e56d3d48d717512dc5b940c
+  tag: latest
   pullPolicy: Always
 
 nameOverride: ""
@@ -58,7 +58,7 @@ env:
 
 # Secrets configuration - source from External Secrets
 secrets:
-  # Define prefixes for AWS Secret Manager secrets (without wildcards)
+  # Define prefixes for AWS Secret Manager secrets (for pattern matching)
   weatherAPIPrefix: "eks-blizzard/weather-api"
   mysqlAppUserPrefix: "eks-blizzard/mysql-app-user"
   

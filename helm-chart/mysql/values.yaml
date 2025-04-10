@@ -79,5 +79,5 @@ mysql:
 
 # AWS Secrets Manager details
 secrets:
-  # Use prefix for AWS secrets without wildcard - ESO will handle the pattern matching
+  # Use prefix for AWS secrets - the find mechanism will locate the active one
   awsSecretPrefix: "eks-blizzard/mysql-app-user"
