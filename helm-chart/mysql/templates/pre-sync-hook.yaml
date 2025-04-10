@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-password-injector
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      serviceAccountName: default
+      containers:
+      - name: kubectl
+        image: bitnami/kubectl:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          # Wait for the password secret to be available
+          while ! kubectl get secret mysql-app-user-password-secret -n {{ .Release.Namespace }}; do
+            echo "Waiting for mysql-app-user-password-secret to be created by ESO..."
+            sleep 5
+          done
+          
+          # Extract the password from the ESO-created secret
+          APP_PASSWORD=$(kubectl get secret mysql-app-user-password-secret -n {{ .Release.Namespace }} -o jsonpath='{.data.db-password}' | base64 --decode)
+          
+          # Update the Helm release values if they already exist
+          if kubectl get secret -n {{ .Release.Namespace }} sh.helm.release.v1.{{ .Release.Name }}.v1 2>/dev/null; then
+            echo "Updating existing Helm release with the real password..."
+            # Get the current release data
+            RELEASE_DATA=$(kubectl get secret -n {{ .Release.Namespace }} sh.helm.release.v1.{{ .Release.Name }}.v1 -o jsonpath='{.data.release}')
+            
+            # Decode it and replace the dummy password with the real one
+            RELEASE_DATA_DECODED=$(echo $RELEASE_DATA | base64 --decode | gzip -d)
+            RELEASE_DATA_UPDATED=$(echo $RELEASE_DATA_DECODED | sed -e "s/dummy-placeholder-replaced-by-secret/$APP_PASSWORD/g")
+            
+            # Encode it back and update the release
+            RELEASE_DATA_ENCODED=$(echo $RELEASE_DATA_UPDATED | gzip -c | base64 -w 0)
+            kubectl patch secret -n {{ .Release.Namespace }} sh.helm.release.v1.{{ .Release.Name }}.v1 -p "{\"data\":{\"release\":\"$RELEASE_DATA_ENCODED\"}}"
+          fi
+
+          # Successfully completed
+          echo "Password injection complete!"
+      restartPolicy: Never
+  backoffLimit: 5 

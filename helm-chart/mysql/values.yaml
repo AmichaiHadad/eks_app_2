@@ -41,17 +41,48 @@ mysql:
       successThreshold: 1
     labels:
       role: mysql-primary
+    
+    # Additional volumes to mount secrets
+    extraVolumes:
+      - name: password-secret
+        secret:
+          secretName: mysql-app-user-password-secret
+      - name: scripts-volume
+        configMap:
+          name: mysql-password-reader
+    
+    # Mount the volumes
+    extraVolumeMounts:
+      - name: password-secret
+        mountPath: /mnt/secrets
+        readOnly: true
+      - name: scripts-volume
+        mountPath: /mnt/scripts
+        readOnly: true
+    
+    # Init container to read the password
+    initContainers:
+      - name: password-injector
+        image: bitnami/minideb:latest
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            source /mnt/scripts/password-reader.sh
+        volumeMounts:
+          - name: password-secret
+            mountPath: /mnt/secrets
+            readOnly: true
+          - name: scripts-volume
+            mountPath: /mnt/scripts
+            readOnly: true
 
   # Database configuration
   auth:
     # Set a random root password directly
     rootPassword: "change-me-now-random-123!"
-    # Reference the user password from our secret
-    password: 
-      valueFrom:
-        secretKeyRef:
-          name: mysql-app-user-password-secret
-          key: db-password
+    # Password will be read from ESO-synced secret - we set a dummy value here
+    # that will be replaced by a pre-sync hook using the password from mysql-app-user-password-secret
+    password: "dummy-placeholder-replaced-by-secret"
     # Database and user settings
     database: "app_db"
     username: "app_user"
