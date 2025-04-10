@@ -1,0 +1,99 @@
+{{- if .Values.iamController.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.iamController.serviceAccount.name }}
+  namespace: {{ .Values.iamController.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.iamController.name }}
+rules:
+- apiGroups: ["iam.aws.namecheap.com"]
+  resources: ["policies", "policyattachments"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Values.iamController.name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Values.iamController.name }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.iamController.serviceAccount.name }}
+  namespace: {{ .Values.iamController.namespace }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.iamController.name }}
+  namespace: {{ .Values.iamController.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.iamController.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.iamController.name }}
+    spec:
+      serviceAccountName: {{ .Values.iamController.serviceAccount.name }}
+      containers:
+      - name: controller
+        image: amazon/aws-cli:latest
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          while true; do
+            echo "Checking for IAM policies to process..."
+            for policy in $(kubectl get policies.iam.aws.namecheap.com --all-namespaces -o json | jq -r '.items[] | .metadata.namespace + "/" + .metadata.name'); do
+              namespace=$(echo $policy | cut -d '/' -f1)
+              name=$(echo $policy | cut -d '/' -f2)
+              
+              echo "Processing policy $namespace/$name"
+              policy_json=$(kubectl get policies.iam.aws.namecheap.com -n $namespace $name -o json)
+              
+              policy_doc=$(echo $policy_json | jq -r '.spec.policy')
+              policy_path=$(echo $policy_json | jq -r '.spec.path // "/"')
+              policy_description=$(echo $policy_json | jq -r '.spec.description // ""')
+              
+              # Create policy if it doesn't exist
+              aws iam get-policy --policy-arn arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):policy$policy_path$name || \
+              aws iam create-policy --policy-name $name --policy-document "$policy_doc" --path "$policy_path" --description "$policy_description"
+            done
+            
+            for attachment in $(kubectl get policyattachments.iam.aws.namecheap.com --all-namespaces -o json | jq -r '.items[] | .metadata.namespace + "/" + .metadata.name'); do
+              namespace=$(echo $attachment | cut -d '/' -f1)
+              name=$(echo $attachment | cut -d '/' -f2)
+              
+              echo "Processing policy attachment $namespace/$name"
+              attachment_json=$(kubectl get policyattachments.iam.aws.namecheap.com -n $namespace $name -o json)
+              
+              policy_name=$(echo $attachment_json | jq -r '.spec.policyName')
+              role_name=$(echo $attachment_json | jq -r '.spec.roleName')
+              
+              policy_arn="arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):policy/$policy_name"
+              
+              # Attach policy to role if not already attached
+              aws iam list-attached-role-policies --role-name $role_name | grep -q $policy_arn || \
+              aws iam attach-role-policy --role-name $role_name --policy-arn $policy_arn
+            done
+            
+            sleep 30
+          done
+        env:
+        - name: AWS_REGION
+          value: {{ .Values.aws.region }}
+      securityContext:
+        fsGroup: 65534
+      nodeSelector:
+        kubernetes.io/os: linux
+{{- end }} 

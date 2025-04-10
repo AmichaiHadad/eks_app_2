@@ -22,10 +22,26 @@ spec:
         path: helm-chart/{{name}}
         helm:
           values: |
-            secrets:
-              # Use the full ARN for the AWS Secret Manager secret
-              mysqlAppUserAwsSecretName: "arn:aws:secretsmanager:us-east-1:163459217187:secret:mysql-app-user-secret"
+            # AWS configuration
+            aws:
+              region: "us-east-1"
+              accountId: "163459217187"
             
+            # IAM policy configuration
+            iamPolicy:
+              create: true
+              path: "/"
+              roleName: "eks-blizzard-us-east-1-external-secrets"
+            
+            # IAM controller configuration
+            iamController:
+              enabled: true
+              name: "iam-controller"
+              namespace: "kube-system"
+              serviceAccount:
+                name: "iam-controller"
+            
+            # MySQL auth configuration
             mysql:
               auth:
                 password: ""

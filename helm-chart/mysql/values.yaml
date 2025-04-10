@@ -79,4 +79,23 @@ mysql:
 
 # Add secrets section for dynamic AWS SM name
 secrets:
-  mysqlAppUserAwsSecretName: ""
+  mysqlAppUserAwsSecretName: "mysql-app-user-secret"
+
+# AWS configuration for IAM policies
+aws:
+  region: "us-east-1"
+  accountId: "163459217187"
+
+# IAM policy configuration
+iamPolicy:
+  create: true
+  path: "/"
+  roleName: "eks-blizzard-us-east-1-external-secrets"
+
+# IAM controller configuration
+iamController:
+  enabled: true
+  name: "iam-controller"
+  namespace: "kube-system"
+  serviceAccount:
+    name: "iam-controller"
